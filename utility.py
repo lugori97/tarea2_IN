@@ -33,9 +33,38 @@ def iniW(next,prev):
     return(w)
     
 # # STEP 1: Feed-forward of AE
-# def ae_forward(x,w1,w2):
-#     ...
-#     return(a)    
+def ae_forward(x, w1, w2, act_func):
+    A = [x]
+    Z = [np.dot(w1, A[0])]
+    A.append(act_function(Z[0], act_func))
+    Z.append(np.dot(w2, A[1]))
+    A.append(Z[1])
+    return A, Z
+
+# STEP 2: Feed-Backward for AE
+def gradW1(a, z, w1, w2, act_f):
+    e = a[2]-a[0]
+    Cost = np.sum(np.sum(e**2))/(2*e.shape[1])
+    del_2 = e
+    gW = np.dot(w2.T, del_2) * deriva_act(z[0], act_f)
+    gW = np.dot(gW, a[0].T)
+    return (gW, Cost)
+
+# Calculate Pseudo-inverse
+def pinv_ae(X, A, params):
+    p_inverse = int(params[0])
+    H = A[0]
+    A = (H @ H.T) + ((1 / p_inverse) * np.eye(H.shape[0]))
+    A_pinv = np.linalg.pinv(A)
+    return (X @ H.T) @ A_pinv
+
+# Update AE's weight via RMSprop
+def updW1_rmsprop(w, v, gw, mu):
+    beta, eps = 0.9, 1e-8
+    v = beta * v + (1 - beta) * gw**2
+    gRMS = (1/(np.sqrt(v + eps))) * gw
+    w = w - mu*gRMS
+    return (w, v)
 
 #Activation function
 def act_function(Z:np.ndarray, act_func: int):
@@ -66,18 +95,7 @@ def deriva_act(A: np.ndarray, act_func: int):
         s = act_function(A, act_func)
         return s * (1 - s)
 
-# Calculate Pseudo-inverse
-# def pinv_ae(x,w1,C):     
-#     ...
-#     ...
-#     return(w2)
 
-# STEP 2: Feed-Backward for AE
-# def gradW1(a,w2):   
-#     e       = a[2]-a[0]
-#     Cost    = np.sum(np.sum(e**2))/(2*e.shape[1])
-#     ...    
-#     return(gW1,Cost)        
 
 # Update AE's weight via RMSprop
 # def updW1_rmsprop(w,v,gw,mu):
